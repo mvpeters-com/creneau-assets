@@ -1,0 +1,27 @@
+{
+  "name": "creneau-filter",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "parcel app.ts links.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jquery": "^3.5.32",
+    "typescript": "^5.7.3"
+  },
+  "targets": {
+    "custom": {
+      "distDir": "dist",
+      "publicUrl": "./",
+      "sourceMap": false
+    }
+  },
+  "dependencies": {
+    "motion": "^12.5.0"
+  }
+}
