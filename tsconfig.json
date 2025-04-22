@@ -1,9 +1,7 @@
 {
   "compilerOptions": {
     "experimentalDecorators": true,
-    "jsxImportSource": "preact",
-    "types": ["jquery"],
-    "target": "es2016",
+    "target": "es2017",
     "module": "commonjs",
     "strict": true,
     "esModuleInterop": true,

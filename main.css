@@ -1,0 +1,23 @@
+/* Global transition duration */
+.work-type-filter-link,
+.work-service-filter-button {
+  font-size-adjust: from-font;
+}
+
+.work-list-item.item-hidden {
+  display: none;
+}
+
+/* Zoom effect for grid hover items */
+.grid-hover-item {
+  overflow: hidden;
+}
+
+.grid-hover-item img {
+  transition-delay: 1s;
+  transition: transform 1s ease-out;
+}
+  
+.grid-hover-item.grid-hover-item-zoom img {
+  transform: scale(0.9);
+}

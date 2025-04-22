@@ -2,26 +2,28 @@
   "name": "creneau-filter",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
-    "build": "parcel app.ts links.ts",
+    "dev": "parcel app.ts lottie.ts main.css",
+    "build": "parcel build app.ts lottie.ts main.css",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@parcel/namer-default": "^2.14.4",
+    "@parcel/transformer-css": "^2.14.4",
+    "@parcel/transformer-typescript-tsc": "^2.14.4",
+    "@parcel/transformer-typescript-types": "^2.14.4",
     "@types/jquery": "^3.5.32",
+    "cssnano": "^7.0.6",
+    "parcel": "^2.14.4",
     "typescript": "^5.7.3"
   },
-  "targets": {
-    "custom": {
-      "distDir": "dist",
-      "publicUrl": "./",
-      "sourceMap": false
-    }
-  },
   "dependencies": {
-    "motion": "^12.5.0"
-  }
+    "gsap": "^3.12.7",
+    "lenis": "^1.2.3",
+    "lottie-web": "^5.12.2"
+  },
+  "browserslist": "> 0.5%, last 2 versions, not dead"
 }

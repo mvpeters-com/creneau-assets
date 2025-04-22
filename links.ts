@@ -1,12 +1,11 @@
-function addQueryParams(): void {
-  // add jquery page loaded
-  $(() => {
-    // look for elements with data-query-{param} attribute
-    const $queryParams: JQuery = $("[data-query]");
+function initLinks(): void {
+  // Wait for DOM content to be fully loaded
+  document.addEventListener("DOMContentLoaded", () => {
+    // look for elements with data-query attribute
+    const queryParams: NodeListOf<Element> =
+      document.querySelectorAll("[data-query]");
 
-    console.log($queryParams);
-
-    $queryParams.each((_, el) => {
+    queryParams.forEach((el) => {
       // Find the attribute that starts with data-query-
       const queryAttr: string | undefined = Array.from(el.attributes).find(
         (attr) => attr.name.startsWith("data-query-")
@@ -15,28 +14,16 @@ function addQueryParams(): void {
       if (!queryAttr) return;
 
       const param: string = queryAttr.replace("data-query-", "");
-      const value: string = $(el).data("query-" + param);
+      const value: string =
+        (el as HTMLElement).getAttribute(`data-query-${param}`) || "";
 
-      const href: string = (el as HTMLAnchorElement).href;
+      const anchorEl = el as HTMLAnchorElement;
+      const href: string = anchorEl.href;
+
       const hasParams: boolean = href.includes("?");
-      (el as HTMLAnchorElement).href =
-        href + (hasParams ? "&" : "?") + param + "=" + value;
+      anchorEl.href = href + (hasParams ? "&" : "?") + param + "=" + value;
     });
   });
 }
 
-// Make this file a module with jQuery typings
-declare global {
-  interface Window {
-    jQuery: typeof jQuery;
-  }
-}
-
-export {};
-
-const checkJquery = setInterval(() => {
-  if (typeof window.jQuery !== "undefined") {
-    clearInterval(checkJquery);
-    addQueryParams();
-  }
-}, 10);
+export { initLinks };
