@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "dev": "parcel app.ts lottie.ts main.css",
-    "build": "parcel build app.ts lottie.ts main.css",
+    "dev": "parcel app.ts",
+    "build": "parcel build app.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -21,9 +21,12 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
+    "@lottiefiles/lottie-interactivity": "^1.6.2",
+    "beerslider": "^1.0.3",
     "gsap": "^3.12.7",
     "lenis": "^1.2.3",
-    "lottie-web": "^5.12.2"
+    "lottie-web": "^5.12.2",
+    "swiper": "^11.2.6"
   },
   "browserslist": "> 0.5%, last 2 versions, not dead"
 }

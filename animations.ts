@@ -24,7 +24,7 @@ const animations = {
       "https://cdn.prod.website-files.com/6786410629851043533e222c/67dc348799fe8b9d3cb895dc_hoverstate_lines.json",
       "https://cdn.prod.website-files.com/6786410629851043533e222c/67dc348701a2e88962279d6c_hoverstate_squares.json",
       "https://cdn.prod.website-files.com/6786410629851043533e222c/67dc3487215cdc512aa15ab3_hoverstate_triangles.json",
-      "https://cdn.prod.website-files.com/6786410629851043533e222c/67dc3487400dc102b11d1459_hoverstate_circles.json",
+      "https://cdn.prod.website-files.com/6786410629851043533e222c/6808f8dd481c1e9571bd7917_Hoverstate-Circles%20(1).json",
     ],
     indexNames: ["lines", "squares", "triangles", "circles"],
     data: [],
@@ -60,28 +60,6 @@ async function fetchAnimationData(config: AnimationConfig): Promise<void> {
   return Promise.resolve();
 }
 
-// Initialize all animations
-async function initializeAllAnimations() {
-  try {
-    // Fetch all animation data in parallel
-    await Promise.all([
-      fetchAnimationData(animations.grid),
-      fetchAnimationData(animations.autoplay),
-      fetchAnimationData(animations.contact),
-    ]);
-
-    // Initialize different types of animations
-    initializeGridAnimations();
-    initializeAutoplayAnimations();
-    initializeContactAnimations();
-  } catch (error) {
-    console.error("Error initializing animations:", error);
-  }
-}
-
-// Start fetching and initializing animations
-initializeAllAnimations();
-
 // Check if the device is mobile (less than 787px)
 const isMobile = () => {
   // Use matchMedia instead of innerWidth for better compatibility with emulators
@@ -104,8 +82,19 @@ const playReverse = (anim: AnimationItem, element: Element) => {
   element.classList.remove("grid-hover-item-zoom");
 };
 
+// Store references to event listeners
+const eventListeners = new WeakMap<
+  Element,
+  {
+    mouseEnter: (e: Event) => void;
+    mouseLeave: (e: Event) => void;
+  }
+>();
+
 // Function to initialize animations for grid hover items
-function initializeGridAnimations() {
+export async function initializeGridAnimations() {
+  await fetchAnimationData(animations.grid);
+
   if (animations.grid.data.length === 0) {
     console.warn("Grid animation data not loaded yet");
     return;
@@ -138,8 +127,7 @@ function initializeGridAnimations() {
     // Re-initialize interactions on window resize
     window.addEventListener("resize", () => {
       // Remove existing event listeners
-      item.removeEventListener("mouseenter", () => {});
-      item.removeEventListener("mouseleave", () => {});
+      cleanupInteraction(item);
 
       // Setup appropriate interaction based on current screen size
       if (!isMobile()) {
@@ -152,7 +140,9 @@ function initializeGridAnimations() {
 }
 
 // Function to initialize auto-play animations
-function initializeAutoplayAnimations() {
+export async function initializeAutoplayAnimations() {
+  await fetchAnimationData(animations.autoplay);
+
   if (animations.autoplay.data.length === 0) {
     console.warn("Autoplay animation data not loaded yet");
     return;
@@ -209,19 +199,52 @@ function initializeAutoplayAnimations() {
   });
 }
 
+// Function to clean up existing interaction listeners
+function cleanupInteraction(item: Element) {
+  const listeners = eventListeners.get(item);
+
+  if (listeners) {
+    item.removeEventListener("mouseenter", listeners.mouseEnter);
+    item.removeEventListener("mouseleave", listeners.mouseLeave);
+
+    // Also disconnect the IntersectionObserver if it exists
+    const observer = (item as any)._intersectionObserver;
+    if (observer) {
+      observer.disconnect();
+      delete (item as any)._intersectionObserver;
+    }
+  }
+}
+
 // Setup desktop interaction (mouseenter/mouseleave)
 function setupDesktopInteraction(item: Element, anim: AnimationItem) {
-  item.addEventListener("mouseenter", () => {
+  // Create named handler functions
+  const mouseEnterHandler = (e: Event) => {
     playForward(anim, item);
+  };
+
+  const mouseLeaveHandler = (e: Event) => {
+    playReverse(anim, item);
+  };
+
+  // Store references to the handlers
+  eventListeners.set(item, {
+    mouseEnter: mouseEnterHandler,
+    mouseLeave: mouseLeaveHandler,
   });
 
-  item.addEventListener("mouseleave", () => {
-    playReverse(anim, item);
-  });
+  // Add listeners using the stored references
+  item.addEventListener("mouseenter", mouseEnterHandler);
+  item.addEventListener("mouseleave", mouseLeaveHandler);
 }
 
 // Setup mobile interaction (Intersection Observer)
 function setupMobileInteraction(item: Element, anim: AnimationItem) {
+  // Clean up any existing observer
+  if ((item as any)._intersectionObserver) {
+    (item as any)._intersectionObserver.disconnect();
+  }
+
   const observer = new IntersectionObserver(
     (entries) => {
       const entry = entries[0];
@@ -245,10 +268,14 @@ function setupMobileInteraction(item: Element, anim: AnimationItem) {
   );
 
   observer.observe(item);
+
+  // Store reference to the observer for cleanup
+  (item as any)._intersectionObserver = observer;
 }
 
-// Function to initialize animations for contact location items
-function initializeContactAnimations() {
+export async function initializeContactAnimations() {
+  await fetchAnimationData(animations.contact);
+
   if (animations.contact.data.length === 0) {
     console.warn("Contact animation data not loaded yet");
     return;
@@ -267,7 +294,6 @@ function initializeContactAnimations() {
     const animationName = item.getAttribute("contact-lottie");
     const backgroundColor = item.getAttribute("contact-bg");
 
-    console.log("backgroundColor", backgroundColor);
     lottieContainer.setAttribute(
       "style",
       `background-color: ${backgroundColor}`
@@ -303,8 +329,7 @@ function initializeContactAnimations() {
     // Re-initialize interactions on window resize
     window.addEventListener("resize", () => {
       // Remove existing event listeners
-      item.removeEventListener("mouseenter", () => {});
-      item.removeEventListener("mouseleave", () => {});
+      cleanupInteraction(item);
 
       // Setup appropriate interaction based on current screen size
       if (!isMobile()) {
@@ -312,6 +337,98 @@ function initializeContactAnimations() {
       } else {
         setupMobileInteraction(item, anim);
       }
+    });
+  });
+}
+
+// Initialize CTA animations using GSAP
+export function initializeCtaAnimations(gsap: GSAP) {
+  // Find all CTA blocks
+  document.querySelectorAll(".cta_block").forEach((block) => {
+    // Mouse enter handler
+    block.addEventListener("mouseenter", (e) => {
+      const mouseEvent = e as MouseEvent;
+      const rect = block.getBoundingClientRect();
+
+      // Calculate relative position (0-1)
+      const relX = (mouseEvent.clientX - rect.left) / rect.width;
+      const relY = (mouseEvent.clientY - rect.top) / rect.height;
+
+      // Determine start position based on entry point
+      let startX, startY;
+
+      // Coming from left/right edge
+      if (relX < 0.1) startX = "-100%";
+      else if (relX > 0.9) startX = "100%";
+      else startX = "0%";
+
+      // Coming from top/bottom edge
+      if (relY < 0.1) startY = "-100%";
+      else if (relY > 0.9) startY = "100%";
+      else startY = "0%";
+
+      const backgroundFill = block.querySelector(".cta_background-fill");
+
+      if (backgroundFill) {
+        gsap.fromTo(
+          backgroundFill,
+          {
+            scale: 0,
+            x: startX,
+            y: startY,
+          },
+          {
+            scale: 1,
+            x: "0%",
+            y: "0%",
+            duration: 0.35,
+            ease: "cta-in",
+          }
+        );
+      }
+
+      gsap.to(block, {
+        color: "#efefef",
+      });
+    });
+
+    // Mouse leave handler
+    block.addEventListener("mouseleave", (e) => {
+      const mouseEvent = e as MouseEvent;
+      const rect = block.getBoundingClientRect();
+
+      // Calculate relative position (0-1)
+      const relX = (mouseEvent.clientX - rect.left) / rect.width;
+      const relY = (mouseEvent.clientY - rect.top) / rect.height;
+
+      // Determine end position based on exit point
+      let endX, endY;
+
+      // Leaving toward left/right edge
+      if (relX < 0) endX = "-100%";
+      else if (relX > 1) endX = "100%";
+      else endX = relX < 0.5 ? "-100%" : "100%";
+
+      // Leaving toward top/bottom edge
+      if (relY < 0) endY = "-100%";
+      else if (relY > 1) endY = "100%";
+      else endY = relY < 0.5 ? "-100%" : "100%";
+
+      const backgroundFill = block.querySelector(".cta_background-fill");
+
+      if (backgroundFill) {
+        gsap.to(backgroundFill, {
+          x: endX,
+          y: endY,
+          scale: 0,
+          duration: 0.35,
+          ease: "cta-out",
+        });
+      }
+
+      gsap.to(block, {
+        color: "#be2721",
+      });
     });
   });
 }

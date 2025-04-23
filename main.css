@@ -21,3 +21,19 @@
 .grid-hover-item.grid-hover-item-zoom img {
   transform: scale(0.9);
 }
+
+.we-do-item {
+  width: fit-content !important;
+}
+
+.beer-slider {
+  height: 100% !important;
+}
+.beer-slider,
+.beer-slider>img {
+  width: 100% !important;
+}
+
+.beer-range::-webkit-slider-thumb {
+  -webkit-appearance: auto;
+}

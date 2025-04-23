@@ -8,9 +8,9 @@ import {
 function initBlogFilters() {
   // Constants
   const SELECTORS = {
-    filterLink: "work-type-filter-link",
-    filterLinkActive: "work-type-filter-link-active",
-    blogItem: "work-list-item",
+    filterLink: "world-type-filter-link",
+    filterLinkActive: "world-type-filter-link-active",
+    blogItem: "world-list-item",
     disabled: "filter-disabled",
   } as const;
 
@@ -21,7 +21,6 @@ function initBlogFilters() {
   // Function to initialize blog items with transition names
   function initializeBlogItems() {
     blogItems = Array.from(document.querySelectorAll(`.${SELECTORS.blogItem}`));
-
     // Add view transition names
     addViewTransitionNames(blogItems, "blog");
   }
@@ -54,17 +53,14 @@ function initBlogFilters() {
 
       if (!parentElement) return;
 
-      // "all" filter should always be visible if there are any items
-      if (typeSlug === "all") {
-        parentElement.style.display = blogItems.length > 0 ? "" : "none";
-        return;
-      }
+      if (typeSlug === "all") return;
 
       // Check if there are any items matching this type
       const hasItems = blogItems.some(
         (item) => item.getAttribute("data-type") === typeSlug
       );
-      parentElement.style.display = hasItems ? "" : "none";
+
+      link.style.display = hasItems ? "" : "none";
     });
   }
 
@@ -106,6 +102,7 @@ function initBlogFilters() {
         filterLinks.forEach((link) =>
           link.classList.remove(SELECTORS.filterLinkActive)
         );
+
         this.classList.add(SELECTORS.filterLinkActive);
 
         // Filter items
@@ -130,7 +127,6 @@ function initBlogFilters() {
     });
   }
 
-  // Wait for DOM to be ready
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);
   } else {
