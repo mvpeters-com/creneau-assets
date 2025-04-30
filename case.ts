@@ -56,6 +56,7 @@ const setupGSAPAnimations = (gsap: GSAP) => {
               scrub: true,
             },
           });
+
           tl.fromTo(
             element.querySelector("#img2_all-vertical"),
             { y: "15rem" },

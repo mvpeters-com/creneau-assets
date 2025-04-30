@@ -8,6 +8,14 @@
   display: none;
 }
 
+.home-nav.nav-transparent .nav_main  {
+  background-color: transparent;
+}
+
+.world-list-item.item-hidden {
+  display: none;
+}
+
 /* Zoom effect for grid hover items */
 .grid-hover-item {
   overflow: hidden;
@@ -36,4 +44,9 @@
 
 .beer-range::-webkit-slider-thumb {
   -webkit-appearance: auto;
+}
+
+.w-richtext a {
+  text-decoration: underline;
+  color: var(--red);
 }

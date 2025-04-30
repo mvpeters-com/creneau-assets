@@ -21,12 +21,14 @@ function initBlogFilters() {
   // Function to initialize blog items with transition names
   function initializeBlogItems() {
     blogItems = Array.from(document.querySelectorAll(`.${SELECTORS.blogItem}`));
+    console.log(blogItems);
     // Add view transition names
     addViewTransitionNames(blogItems, "blog");
   }
 
   // Function to filter blog items
   function filterBlogItems(typeSlug: string) {
+    console.log("filterBlogItems", typeSlug);
     // The function that will update the DOM
     const updateDOM = () => {
       blogItems.forEach((item) => {

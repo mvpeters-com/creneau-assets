@@ -48,6 +48,7 @@ export function addViewTransitionNames(
   if ("startViewTransition" in document) {
     elements.forEach((element, index) => {
       element.style.viewTransitionName = `${prefix}-item-${index}`;
+      console.log(element.style.viewTransitionName);
     });
   }
 }

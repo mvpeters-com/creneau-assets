@@ -1,6 +1,5 @@
 import type Lenis from "lenis";
-import type { gsap as GSAP } from "gsap";
-import lottie, { AnimationItem } from "lottie-web";
+import lottie from "lottie-web";
 
 const lottieUrl =
   "https://cdn.prod.website-files.com/6786410629851043533e222c/67dc16c4926a696f3b9a0941_hover-card-circles.json";
@@ -17,13 +16,50 @@ const initHeroAnimations = (lenis: Lenis, gsap: GSAP) => {
 
   heroLottie.setSpeed(0.5);
 
+  const nav = document.querySelector<HTMLElement>(".home-nav");
+
+  // Add the nav-transparent class initially if needed
+  if (nav && !nav.classList.contains("nav-transparent")) {
+    nav.classList.add("nav-transparent");
+  }
+
+  // Keep track of scroll direction and animation state
+  let lastScrollProgress = 0;
+  let isAnimatingForward = true;
+
   const tl = gsap.timeline({
     scrollTrigger: {
       trigger: ".hero_home_section",
       start: "top top",
-      end: "+=100%", // how many % of viewport height to scroll through
+      end: "+=150%", // how many % of viewport height to scroll through
       scrub: 0.5,
       pin: true,
+      onUpdate: (self) => {
+        // Check if we've crossed the animation trigger point (50% of the timeline)
+        const currentProgress = self.progress;
+        const triggerPoint = 0.5;
+
+        // Determine scroll direction
+        const isScrollingDown = currentProgress > lastScrollProgress;
+
+        // If we crossed the 0.5 mark in either direction
+        if (
+          (lastScrollProgress < triggerPoint &&
+            currentProgress >= triggerPoint) ||
+          (lastScrollProgress >= triggerPoint && currentProgress < triggerPoint)
+        ) {
+          // If direction changed, set animation direction
+          if (isScrollingDown !== isAnimatingForward) {
+            isAnimatingForward = isScrollingDown;
+            heroLottie.setDirection(isAnimatingForward ? 1 : -1);
+          }
+
+          // Play from current position
+          heroLottie.play();
+        }
+
+        lastScrollProgress = currentProgress;
+      },
     },
   });
 
@@ -38,13 +74,6 @@ const initHeroAnimations = (lenis: Lenis, gsap: GSAP) => {
       { height: 0, autoAlpha: 0 },
       { height: "calc(100vh - 100px)", autoAlpha: 1, ease: "none" },
       0 // ← same exact position
-    )
-    .call(
-      () => {
-        heroLottie?.play();
-      },
-      [],
-      0.5
     )
     .fromTo(
       ".project-label",
@@ -67,6 +96,18 @@ const initHeroAnimations = (lenis: Lenis, gsap: GSAP) => {
       },
       0.6
     )
+    // Remove the nav-transparent class at 90% progress
+    .call(
+      () => {
+        if (nav && nav.classList.contains("nav-transparent")) {
+          nav.classList.remove("nav-transparent");
+        } else if (nav) {
+          nav.classList.add("nav-transparent");
+        }
+      },
+      [],
+      0.9
+    )
     .to(".hero-white-overlay", { height: 0, autoAlpha: 1, ease: "none" }, 0.7)
     .fromTo(
       ".project-label",
@@ -81,21 +122,32 @@ const initHeroAnimations = (lenis: Lenis, gsap: GSAP) => {
       0.7
     );
 
-  // Fade in the Work We Do section on scroll
-  gsap.fromTo(
-    ".padding-what-we-do",
-    { autoAlpha: 0 },
-    {
-      autoAlpha: 1,
-      ease: "none",
-      scrollTrigger: {
-        trigger: ".padding-what-we-do",
-        start: "top 90%",
-        end: "top 40%",
-        scrub: true,
+  // Create a timeline for the What We Do section with nav reappearance
+  const whatWeDotl = gsap.timeline({
+    scrollTrigger: {
+      trigger: ".padding-what-we-do",
+      start: "top 90%",
+      end: "top 30%",
+      scrub: true,
+    },
+  });
+
+  whatWeDotl
+    .fromTo(
+      ".padding-what-we-do",
+      { autoAlpha: 0 },
+      { autoAlpha: 1, ease: "none", duration: 0.5 }
+    )
+    .fromTo(
+      ".home-nav",
+      { y: "-100%" },
+      {
+        y: "0%",
+        ease: "none",
+        duration: 0.2,
       },
-    }
-  );
+      1 // Start halfway through the fade-in
+    );
 };
 
 // Shared animation function for line and circle elements
@@ -129,11 +181,39 @@ const animateWeDoElements = (
 // Function to handle we-do items for desktop
 const initWeDoItemsDesktop = (gsap: GSAP) => {
   const weDoItems = document.querySelectorAll<HTMLElement>(".we-do-item");
+  const weDoTextContainers = document.querySelectorAll<HTMLElement>(
+    ".we-do-text-container"
+  );
+
+  // Setup the hover animations for the text containers
+  weDoTextContainers.forEach((container) => {
+    const circle = container.querySelector<HTMLElement>(".we-do-circle");
+
+    // Simple hover animation for text containers
+    if (circle) {
+      container.addEventListener("mouseenter", () => {
+        gsap.to(circle, {
+          width: "15px",
+          height: "15px",
+          duration: 0.3,
+          ease: "power1.out",
+        });
+      });
+
+      container.addEventListener("mouseleave", () => {
+        gsap.to(circle, {
+          width: "0px",
+          height: "0px",
+          duration: 0.3,
+          ease: "power1.out",
+        });
+      });
+    }
+  });
 
   weDoItems.forEach((item, index) => {
     const line = item.querySelector<HTMLElement>(".we-do-line");
     const img = item.querySelector<HTMLElement>(".we-do-image");
-    const text = item.querySelector<HTMLElement>(".we-do-text");
     const circle = item.querySelector<HTMLElement>(".we-do-circle");
 
     // go img for each and translate them 10% up
@@ -200,6 +280,37 @@ const initWeDoItemsMobile = (gsap: GSAP) => {
   const weDoSection = document.querySelector<HTMLElement>(
     ".what-we-do-container"
   );
+  const weDoTextContainers = document.querySelectorAll<HTMLElement>(
+    ".we-do-text-container"
+  );
+
+  // Setup the animations for text containers in mobile view
+  weDoTextContainers.forEach((container) => {
+    const circle = container.querySelector<HTMLElement>(".we-do-circle");
+
+    if (circle) {
+      // Initialize circles to 0px
+      gsap.set(circle, { width: "0px", height: "0px" });
+
+      // Create a scroll trigger for each text container
+      gsap
+        .timeline({
+          scrollTrigger: {
+            trigger: container,
+            start: "top 80%",
+            end: "top 50%",
+            scrub: true,
+            toggleActions: "play none none reverse",
+          },
+        })
+        .to(circle, {
+          width: "15px",
+          height: "15px",
+          duration: 0.3,
+          ease: "power1.out",
+        });
+    }
+  });
 
   if (!weDoSection) return;
 

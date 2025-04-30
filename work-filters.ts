@@ -46,6 +46,15 @@ function initWorkFilters() {
     addViewTransitionNames(workItems, "work");
   }
 
+  // Function to fix service button widths after initial render
+  function fixServiceButtonWidths() {
+    serviceButtons.forEach((button) => {
+      // Get the current computed width and set it as a fixed inline style
+      const width = button.getBoundingClientRect().width;
+      button.style.width = `${width}px`;
+    });
+  }
+
   // Function to hide service filters that have no items for current type
   function hideIrrelevantServiceFilters(currentTypeSlug: string) {
     const visibleItems =
@@ -215,6 +224,12 @@ function initWorkFilters() {
       if (activeServices.includes(buttonSlug)) {
         button.classList.add(SELECTORS.serviceButtonActive);
       }
+    });
+
+    // Fix service button widths after initial rendering
+    // Use requestAnimationFrame to ensure DOM is fully rendered
+    requestAnimationFrame(() => {
+      fixServiceButtonWidths();
     });
 
     // Type filter click handler
