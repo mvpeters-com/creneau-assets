@@ -50,3 +50,8 @@
   text-decoration: underline;
   color: var(--red);
 }
+
+.web-lottie-container {
+  position: sticky;
+  top: 2rem;
+}

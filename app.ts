@@ -20,14 +20,13 @@ import {
 import { initializeGridAnimations } from "./grid";
 import { initFranchiseSlider } from "./swiper";
 import { initCase } from "./case";
+import { initSpotify } from "./spotify";
 
 console.log("app.ts");
 
 gsap.registerPlugin(ScrollTrigger);
 // Initialize smooth scrolling for all pages
-const lenis = new Lenis({
-  autoRaf: true,
-});
+const lenis = new Lenis();
 
 // Synchronize Lenis scrolling with GSAP's ScrollTrigger plugin
 lenis.on("scroll", ScrollTrigger.update);
@@ -54,6 +53,7 @@ const pathModuleMap: Record<string, Array<() => void>> = {
   "/work": [initWorkFilters],
   "/work/*": [initCase.bind(null, gsap)],
   "/world-of-creneau": [initBlogFilters, initializeGridAnimations],
+  "/blog-article/*": [initSpotify, initCase.bind(null, gsap)],
   "/contact": [initializeContactAnimations],
   "/vacancies/*": [initializeAutoplayAnimations],
 };
@@ -65,8 +65,6 @@ function initializeModules() {
 
   // Always run default modules
   const modulesToRun = [...pathModuleMap.default];
-
-  console.log(modulesToRun);
 
   // Add page-specific modules
   Object.entries(pathModuleMap).forEach(([pagePath, modules]) => {

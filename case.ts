@@ -1,187 +1,205 @@
 import Swiper from "swiper";
 import BeerSlider from "beerslider";
-import { create } from "@lottiefiles/lottie-interactivity";
+import lottie, { AnimationItem } from "lottie-web";
 
 // GSAP animations
 const setupGSAPAnimations = (gsap: GSAP) => {
-  gsap.matchMedia({
-    "(min-width: 991px)": function () {
-      // Image left text
-      document
-        .querySelectorAll(".case-study_image_image-left-text")
-        .forEach((element) => {
-          let tl = gsap.timeline({
-            scrollTrigger: {
-              trigger: element,
-              start: "top bottom",
-              end: "bottom top",
-              scrub: true,
-            },
-          });
-          tl.fromTo(
-            element.querySelector("#txt_image-left-text"),
-            { marginBottom: "50%" },
-            { marginBottom: "0" }
-          );
+  let mm = gsap.matchMedia();
+
+  mm.add("(min-width: 991px)", () => {
+    // Image left text
+    document
+      .querySelectorAll(".case-study_image_image-left-text")
+      .forEach((element) => {
+        let tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: element,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: true,
+          },
         });
 
-      // All vertical text
-      document
-        .querySelectorAll(".case-study_images_all-vertical-text")
-        .forEach((element) => {
-          let tl = gsap.timeline({
-            scrollTrigger: {
-              trigger: element,
-              start: "top bottom",
-              end: "bottom top",
-              scrub: true,
-            },
-          });
-          tl.fromTo(
-            element.querySelector("#img2_all-vertical-text"),
-            { y: "12rem" },
-            { y: "0rem" }
-          );
+        tl.fromTo(
+          element.querySelector("#txt_image-left-text"),
+          { marginBottom: "50%" },
+          { marginBottom: "0" }
+        );
+      });
+
+    // All vertical text
+    document
+      .querySelectorAll(".case-study_images_all-vertical-text")
+      .forEach((element) => {
+        let tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: element,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: true,
+          },
+        });
+        tl.fromTo(
+          element.querySelector("#img2_all-vertical-text"),
+          { y: "12rem" },
+          { y: "0rem" }
+        );
+      });
+
+    // All vertical
+    document
+      .querySelectorAll(".case-study_images_all-vertical")
+      .forEach((element) => {
+        let tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: element,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: true,
+          },
         });
 
-      // All vertical
-      document
-        .querySelectorAll(".case-study_images_all-vertical")
-        .forEach((element) => {
-          let tl = gsap.timeline({
-            scrollTrigger: {
-              trigger: element,
-              start: "top bottom",
-              end: "bottom top",
-              scrub: true,
-            },
-          });
+        tl.fromTo(
+          element.querySelector(".vertical-image-mask:nth-child(1)"),
+          { y: "15rem" },
+          { y: "0rem" }
+        );
+      });
 
-          tl.fromTo(
-            element.querySelector("#img2_all-vertical"),
-            { y: "15rem" },
-            { y: "0rem" }
-          );
+    // Horizontal right low
+    document
+      .querySelectorAll(".case-study_images_horizontal-right-low")
+      .forEach((element) => {
+        let tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: element,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: true,
+          },
         });
+        tl.fromTo(
+          element.querySelector("#img2_horizontal-right-low"),
+          { marginBottom: "50%" },
+          { marginBottom: "0" }
+        );
+      });
 
-      // Horizontal right low
-      document
-        .querySelectorAll(".case-study_images_horizontal-right-low")
-        .forEach((element) => {
-          let tl = gsap.timeline({
-            scrollTrigger: {
-              trigger: element,
-              start: "top bottom",
-              end: "bottom top",
-              scrub: true,
-            },
-          });
-          tl.fromTo(
-            element.querySelector("#img2_horizontal-right-low"),
-            { marginBottom: "50%" },
-            { marginBottom: "0" }
-          );
+    // Centered big text
+    document
+      .querySelectorAll(".case-study_image_centered-big-text")
+      .forEach((element) => {
+        let tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: element,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: true,
+          },
         });
+        tl.fromTo(
+          element.querySelector("#txt_centered-big-text"),
+          { marginBottom: "50%" },
+          { marginBottom: "0" }
+        );
+      });
 
-      // Centered big text
-      document
-        .querySelectorAll(".case-study_image_centered-big-text")
-        .forEach((element) => {
-          let tl = gsap.timeline({
-            scrollTrigger: {
-              trigger: element,
-              start: "top bottom",
-              end: "bottom top",
-              scrub: true,
-            },
-          });
-          tl.fromTo(
-            element.querySelector("#txt_centered-big-text"),
-            { marginBottom: "50%" },
-            { marginBottom: "0" }
-          );
+    // Horizontal right text
+    document
+      .querySelectorAll(".case-study_images_horizontal-right-text")
+      .forEach((element) => {
+        let tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: element,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: true,
+          },
         });
+        tl.fromTo(
+          element.querySelector("#img1_horizontal-right-text"),
+          { marginBottom: "50%" },
+          { marginBottom: "0" }
+        );
+      });
 
-      // Horizontal right text
-      document
-        .querySelectorAll(".case-study_images_horizontal-right-text")
-        .forEach((element) => {
-          let tl = gsap.timeline({
-            scrollTrigger: {
-              trigger: element,
-              start: "top bottom",
-              end: "bottom top",
-              scrub: true,
-            },
-          });
-          tl.fromTo(
-            element.querySelector("#img1_horizontal-right-text"),
-            { marginBottom: "50%" },
-            { marginBottom: "0" }
-          );
+    // Image right text
+    document
+      .querySelectorAll(".case-study_image_image-right-text")
+      .forEach((element) => {
+        let tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: element,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: true,
+          },
         });
+        tl.fromTo(
+          element.querySelector("#txt_image-right-text"),
+          { marginBottom: "50%" },
+          { marginBottom: "0" }
+        );
+      });
 
-      // Image right text
-      document
-        .querySelectorAll(".case-study_image_image-right-text")
-        .forEach((element) => {
-          let tl = gsap.timeline({
-            scrollTrigger: {
-              trigger: element,
-              start: "top bottom",
-              end: "bottom top",
-              scrub: true,
-            },
-          });
-          tl.fromTo(
-            element.querySelector("#txt_image-right-text"),
-            { marginBottom: "50%" },
-            { marginBottom: "0" }
-          );
+    // Horizontal left
+    document
+      .querySelectorAll(".case-study_images_horizontal-left")
+      .forEach((element) => {
+        let tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: element,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: true,
+          },
         });
-
-      // Horizontal left
-      document
-        .querySelectorAll(".case-study_images_horizontal-left")
-        .forEach((element) => {
-          let tl = gsap.timeline({
-            scrollTrigger: {
-              trigger: element,
-              start: "top bottom",
-              end: "bottom top",
-              scrub: true,
-            },
-          });
-          tl.fromTo(
-            element.querySelector("#img1_horizontal-left"),
-            { marginBottom: "50%" },
-            { marginBottom: "0" }
-          );
-        });
-    },
+        tl.fromTo(
+          element.querySelector("#img1_horizontal-left"),
+          { marginBottom: "50%" },
+          { marginBottom: "0" }
+        );
+      });
   });
 };
 
 // Setup Lottie animations
-const setupLottieAnimations = () => {
-  for (let i = 1; i <= 5; i++) {
-    let lottie = document.getElementById(`lottie${i}`);
+const setupLottieAnimations = (gsap: GSAP) => {
+  const lottiePlayers = document.querySelectorAll(".lottie-player");
 
-    if (!lottie) continue;
+  lottiePlayers.forEach((player, index) => {
+    const container = player.closest(".web-lottie-container");
+    if (!container || !(player as HTMLElement).dataset.src) return;
 
-    create({
-      player: `#lottie${i}`,
-      mode: "scroll",
-      container: `#lottie-sticky-containerclass${i}`,
-      actions: [
-        {
-          visibility: [0, 1.0],
-          type: "seek",
-          frames: [0, 150], // Lottie moet +- 90-100 frames zijn
-        },
-      ],
+    // Create lottie animation
+    const animation = lottie.loadAnimation({
+      container: player as HTMLElement,
+      renderer: "svg",
+      loop: false,
+      autoplay: false,
+      path: (player as HTMLElement).dataset.src || "",
     });
-  }
+
+    // Create timeline with scroll trigger
+    let tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: container,
+        start: "top bottom",
+        end: "bottom top",
+        scrub: true,
+        onUpdate: (self) => {
+          const frame = Math.round(self.progress * (animation.totalFrames - 1));
+          animation.goToAndStop(frame, true);
+        },
+      },
+    });
+
+    console.log(
+      `Lottie ${index + 1} initialized with path: ${
+        (player as HTMLElement).dataset.src
+      }`
+    );
+  });
 };
 
 // Tricks counter functionality
@@ -381,14 +399,16 @@ const initCase = (gsap: GSAP) => {
 
   // Ensure DOM is fully loaded before initializing Lottie animations
   if (document.readyState === "loading") {
-    console.log("DOM is loading, setting up Lottie animations");
-    document.addEventListener("DOMContentLoaded", setupLottieAnimations);
+    document.addEventListener(
+      "DOMContentLoaded",
+      setupLottieAnimations.bind(null, gsap)
+    );
   } else {
     console.log(
       document.readyState,
       "DOM is loaded, setting up Lottie animations"
     );
-    setupLottieAnimations();
+    setupLottieAnimations(gsap);
   }
 
   setupTricksCounter();
