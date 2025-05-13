@@ -185,31 +185,58 @@ const initWeDoItemsDesktop = (gsap: GSAP) => {
     ".we-do-text-container"
   );
 
+  // Create arrays to store all event listeners for later cleanup
+  const eventListeners: {
+    element: HTMLElement;
+    type: string;
+    handler: EventListener;
+  }[] = [];
+
   // Setup the hover animations for the text containers
   weDoTextContainers.forEach((container) => {
     const circle = container.querySelector<HTMLElement>(".we-do-circle");
 
     // Simple hover animation for text containers
     if (circle) {
-      container.addEventListener("mouseenter", () => {
+      const mouseenterHandler = () => {
         gsap.to(circle, {
           width: "15px",
           height: "15px",
           duration: 0.3,
           ease: "power1.out",
         });
-      });
+      };
 
-      container.addEventListener("mouseleave", () => {
+      const mouseleaveHandler = () => {
         gsap.to(circle, {
           width: "0px",
           height: "0px",
           duration: 0.3,
           ease: "power1.out",
         });
-      });
+      };
+
+      container.addEventListener("mouseenter", mouseenterHandler);
+      container.addEventListener("mouseleave", mouseleaveHandler);
+
+      // Store for later cleanup
+      eventListeners.push(
+        {
+          element: container,
+          type: "mouseenter",
+          handler: mouseenterHandler as EventListener,
+        },
+        {
+          element: container,
+          type: "mouseleave",
+          handler: mouseleaveHandler as EventListener,
+        }
+      );
     }
   });
+
+  // Store resize handlers
+  const resizeHandlers: number[] = [];
 
   weDoItems.forEach((item, index) => {
     const line = item.querySelector<HTMLElement>(".we-do-line");
@@ -248,12 +275,21 @@ const initWeDoItemsDesktop = (gsap: GSAP) => {
     let interval: number;
 
     // Check on resize
-    window.addEventListener("resize", () => {
+    const resizeHandler = () => {
       clearTimeout(interval);
 
       interval = setTimeout(() => {
         checkImagePosition();
       }, 50);
+    };
+
+    window.addEventListener("resize", resizeHandler);
+
+    // Store for later cleanup
+    eventListeners.push({
+      element: window as unknown as HTMLElement,
+      type: "resize",
+      handler: resizeHandler as EventListener,
     });
 
     // Initial check
@@ -264,19 +300,48 @@ const initWeDoItemsDesktop = (gsap: GSAP) => {
     }, 100);
 
     // Use shared animation function for hover effects
-    item.addEventListener("mouseenter", () => {
+    const mouseenterHandler = () => {
       animateWeDoElements(gsap, line, circle, img, true);
+    };
+
+    const mouseleaveHandler = () => {
+      animateWeDoElements(gsap, line, circle, img, false);
+    };
+
+    item.addEventListener("mouseenter", mouseenterHandler);
+    item.addEventListener("mouseleave", mouseleaveHandler);
+
+    // Store for later cleanup
+    eventListeners.push(
+      {
+        element: item,
+        type: "mouseenter",
+        handler: mouseenterHandler as EventListener,
+      },
+      {
+        element: item,
+        type: "mouseleave",
+        handler: mouseleaveHandler as EventListener,
+      }
+    );
+  });
+
+  // Return cleanup function
+  return () => {
+    // Remove all event listeners
+    eventListeners.forEach(({ element, type, handler }) => {
+      element.removeEventListener(type, handler);
     });
 
-    item.addEventListener("mouseleave", () => {
-      animateWeDoElements(gsap, line, circle, img, false);
-    });
-  });
+    // Clear all timeouts
+    resizeHandlers.forEach((id) => clearTimeout(id));
+  };
 };
 
 // Function to handle we-do items for mobile
 const initWeDoItemsMobile = (gsap: GSAP) => {
   const weDoItems = document.querySelectorAll<HTMLElement>(".we-do-item");
+
   const weDoSection = document.querySelector<HTMLElement>(
     ".what-we-do-container"
   );
@@ -284,47 +349,25 @@ const initWeDoItemsMobile = (gsap: GSAP) => {
     ".we-do-text-container"
   );
 
-  // Setup the animations for text containers in mobile view
-  weDoTextContainers.forEach((container) => {
-    const circle = container.querySelector<HTMLElement>(".we-do-circle");
+  // Store scroll triggers for later cleanup
+  const scrollTriggers: any[] = [];
 
-    if (circle) {
-      // Initialize circles to 0px
-      gsap.set(circle, { width: "0px", height: "0px" });
-
-      // Create a scroll trigger for each text container
-      gsap
-        .timeline({
-          scrollTrigger: {
-            trigger: container,
-            start: "top 80%",
-            end: "top 50%",
-            scrub: true,
-            toggleActions: "play none none reverse",
-          },
-        })
-        .to(circle, {
-          width: "15px",
-          height: "15px",
-          duration: 0.3,
-          ease: "power1.out",
-        });
-    }
-  });
-
-  if (!weDoSection) return;
+  if (!weDoSection) return () => {};
 
   // Create a parent timeline with pinning
   const mainTl = gsap.timeline({
     scrollTrigger: {
       trigger: weDoSection,
-      start: "top 20%", // Start a bit after the section enters viewport
-      end: "+=300%", // Pin for 300% of viewport height (adjust as needed)
+      start: "top 0%", // Changed from 20% to 10% to make it freeze closer to the top
+      end: "+=200%", // Pin for 300% of viewport height (adjust as needed)
       pin: true,
       scrub: 1, // Smooth scrubbing
       // markers: true, // Uncomment for debugging
     },
   });
+
+  // Store the main ScrollTrigger
+  scrollTriggers.push(mainTl.scrollTrigger);
 
   // Create individual animations for each item
   weDoItems.forEach((item, index) => {
@@ -333,44 +376,51 @@ const initWeDoItemsMobile = (gsap: GSAP) => {
 
     // Calculate the progress point for this item (spread evenly across scroll)
     const itemStartProgress = index / weDoItems.length;
-    const itemEndProgress = (index + 0.8) / weDoItems.length; // Overlap slightly with next item
+    const itemDuration = (1 / weDoItems.length) * 0.8; // Duration for this item's visibility (80% of its slot)
 
     // Create nested timeline for this item
     const itemTl = gsap.timeline();
 
-    // Add animations to the item timeline
+    // Add both in and out animations to the same timeline
+    // First animate in
     itemTl
       .fromTo(
         line,
         { width: "27px" },
-        { width: "60px", ease: "power1.out", duration: 1 }
+        { width: "60px", ease: "power1.out", duration: 0.1 }
       )
       .fromTo(
         circle,
         { width: "0px", height: "0px" },
-        { width: "15px", height: "15px", ease: "power1.out", duration: 1 },
+        { width: "15px", height: "15px", ease: "power1.out", duration: 0.1 },
         "<" // Start at the same time as the previous animation
+      )
+      // Hold for a bit (automatic due to timeline position)
+      // Then animate out (except for the last item)
+      .to(
+        line,
+        { width: "27px", ease: "power1.out", duration: 0.1 },
+        itemDuration // Start the out animation after the hold period
+      )
+      .to(
+        circle,
+        { width: "0px", height: "0px", ease: "power1.out", duration: 0.1 },
+        "<" // Start at the same time as line animation out
       );
 
     // Add this timeline to the main timeline at the calculated progress point
     mainTl.add(itemTl, itemStartProgress);
-
-    // Add a reset to the main timeline for previous items when next one activates
-    // (Only add reset if it's not the last item)
-    if (index < weDoItems.length - 1) {
-      const resetTl = gsap.timeline();
-      resetTl
-        .to(line, { width: "27px", ease: "power1.out", duration: 0.5 })
-        .to(
-          circle,
-          { width: "0px", height: "0px", ease: "power1.out", duration: 0.5 },
-          "<"
-        );
-
-      // Add the reset timeline slightly after the next item starts
-      mainTl.add(resetTl, itemEndProgress + 0.05);
-    }
   });
+
+  // Return cleanup function
+  return () => {
+    // Kill all scroll triggers
+    scrollTriggers.forEach((trigger) => {
+      if (trigger && typeof trigger.kill === "function") {
+        trigger.kill();
+      }
+    });
+  };
 };
 
 // Main initialization function
@@ -378,26 +428,25 @@ const initHome = (lenis: Lenis, gsap: GSAP) => {
   // Initialize hero animations
   initHeroAnimations(lenis, gsap);
 
-  // Initialize we-do items based on screen size
-  const handleScreenSizeChange = () => {
-    if (window.innerWidth >= 768) {
-      // Desktop version
-      initWeDoItemsDesktop(gsap);
-    } else {
-      // Mobile version
-      initWeDoItemsMobile(gsap);
-    }
-  };
+  // Use GSAP matchMedia instead of manual screen size handling
+  let mm = gsap.matchMedia();
 
-  // Run initially
-  handleScreenSizeChange();
+  // Desktop (>= 768px) context
+  mm.add("(min-width: 768px)", () => {
+    // Initialize desktop view and get the cleanup function
+    const cleanup = initWeDoItemsDesktop(gsap);
 
-  // Re-run on window resize
-  window.addEventListener("resize", () => {
-    // Debounce resize handling
-    let resizeTimeout: number | undefined;
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(handleScreenSizeChange, 100);
+    // Return cleanup function for when this context is exited
+    return cleanup;
+  });
+
+  // Mobile (< 768px) context
+  mm.add("(max-width: 767px)", () => {
+    // Initialize mobile view and get the cleanup function
+    const cleanup = initWeDoItemsMobile(gsap);
+
+    // Return cleanup function for when this context is exited
+    return cleanup;
   });
 };
 
