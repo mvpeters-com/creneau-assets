@@ -352,13 +352,15 @@ const initWeDoItemsMobile = (gsap: GSAP) => {
   // Store scroll triggers for later cleanup
   const scrollTriggers: any[] = [];
 
+  console.log(weDoSection);
+
   if (!weDoSection) return () => {};
 
   // Create a parent timeline with pinning
   const mainTl = gsap.timeline({
     scrollTrigger: {
       trigger: weDoSection,
-      start: "top 0%", // Changed from 20% to 10% to make it freeze closer to the top
+      start: "top 20%", // Changed from 20% to 10% to make it freeze closer to the top
       end: "+=200%", // Pin for 300% of viewport height (adjust as needed)
       pin: true,
       scrub: 1, // Smooth scrubbing
@@ -373,6 +375,7 @@ const initWeDoItemsMobile = (gsap: GSAP) => {
   weDoItems.forEach((item, index) => {
     const line = item.querySelector<HTMLElement>(".we-do-line");
     const circle = item.querySelector<HTMLElement>(".we-do-circle");
+    const img = item.querySelector<HTMLElement>(".we-do-image");
 
     // Calculate the progress point for this item (spread evenly across scroll)
     const itemStartProgress = index / weDoItems.length;
@@ -386,20 +389,42 @@ const initWeDoItemsMobile = (gsap: GSAP) => {
     itemTl
       .fromTo(
         line,
-        { width: "27px" },
-        { width: "60px", ease: "power1.out", duration: 0.1 }
+        { width: "25px" },
+        { width: "50px", ease: "power1.out", duration: 0.1 }
       )
       .fromTo(
         circle,
         { width: "0px", height: "0px" },
         { width: "15px", height: "15px", ease: "power1.out", duration: 0.1 },
         "<" // Start at the same time as the previous animation
-      )
-      // Hold for a bit (automatic due to timeline position)
-      // Then animate out (except for the last item)
+      );
+
+    // Add image animation if image exists
+    if (img) {
+      // Set initial position similar to desktop
+      img.style.setProperty("transform", `translateY(-${(index + 1) * 10}%)`);
+
+      // Add image fade in to the timeline
+      itemTl.fromTo(
+        img,
+        { autoAlpha: 0 },
+        { autoAlpha: 1, ease: "power1.out", duration: 0.2 },
+        "<0.05" // Start slightly after the line and circle animations begin
+      );
+
+      // Add image fade out
+      itemTl.to(
+        img,
+        { autoAlpha: 0, ease: "power1.out", duration: 0.2 },
+        itemDuration - 0.2 // Start a bit before the out animations for line and circle
+      );
+    }
+
+    // Add out animations for line and circle
+    itemTl
       .to(
         line,
-        { width: "27px", ease: "power1.out", duration: 0.1 },
+        { width: "25px", ease: "power1.out", duration: 0.1 },
         itemDuration // Start the out animation after the hold period
       )
       .to(
@@ -433,6 +458,7 @@ const initHome = (lenis: Lenis, gsap: GSAP) => {
 
   // Desktop (>= 768px) context
   mm.add("(min-width: 768px)", () => {
+    console.log("desktop");
     // Initialize desktop view and get the cleanup function
     const cleanup = initWeDoItemsDesktop(gsap);
 
@@ -442,6 +468,7 @@ const initHome = (lenis: Lenis, gsap: GSAP) => {
 
   // Mobile (< 768px) context
   mm.add("(max-width: 767px)", () => {
+    console.log("mobile");
     // Initialize mobile view and get the cleanup function
     const cleanup = initWeDoItemsMobile(gsap);
 
