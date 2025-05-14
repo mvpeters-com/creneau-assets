@@ -361,7 +361,7 @@ const initWeDoItemsMobile = (gsap: GSAP) => {
     scrollTrigger: {
       trigger: weDoSection,
       start: "top 20%", // Changed from 20% to 10% to make it freeze closer to the top
-      end: "+=200%", // Pin for 300% of viewport height (adjust as needed)
+      end: "+=100%", // Pin for 300% of viewport height (adjust as needed)
       pin: true,
       scrub: 1, // Smooth scrubbing
       // markers: true, // Uncomment for debugging
@@ -398,27 +398,6 @@ const initWeDoItemsMobile = (gsap: GSAP) => {
         { width: "15px", height: "15px", ease: "power1.out", duration: 0.1 },
         "<" // Start at the same time as the previous animation
       );
-
-    // Add image animation if image exists
-    if (img) {
-      // Set initial position similar to desktop
-      img.style.setProperty("transform", `translateY(-${(index + 1) * 10}%)`);
-
-      // Add image fade in to the timeline
-      itemTl.fromTo(
-        img,
-        { autoAlpha: 0 },
-        { autoAlpha: 1, ease: "power1.out", duration: 0.2 },
-        "<0.05" // Start slightly after the line and circle animations begin
-      );
-
-      // Add image fade out
-      itemTl.to(
-        img,
-        { autoAlpha: 0, ease: "power1.out", duration: 0.2 },
-        itemDuration - 0.2 // Start a bit before the out animations for line and circle
-      );
-    }
 
     // Add out animations for line and circle
     itemTl

@@ -17,9 +17,10 @@ export function initSpotify() {
     const elements = document.querySelectorAll(".spotify-embed-block");
 
     elements.forEach((element) => {
-      const uri = element?.getAttribute("data-spotify-uri");
+      const url = element?.getAttribute("data-spotify-uri");
 
-      console.log(uri);
+      // Extract the URI from the URL
+      const uri = url?.split("episode/")[1];
 
       if (!element) {
         console.warn("No element found with [data-embed-spotify] attribute.");
