@@ -16,6 +16,8 @@ export function initSpotify() {
   window.onSpotifyIframeApiReady = (IFrameAPI) => {
     const elements = document.querySelectorAll(".spotify-embed-block");
 
+    console.log(elements);
+
     elements.forEach((element) => {
       const url = element?.getAttribute("data-spotify-uri");
 
