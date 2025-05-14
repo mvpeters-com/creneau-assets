@@ -22,8 +22,6 @@ import { initFranchiseSlider } from "./swiper";
 import { initCase } from "./case";
 import { initSpotify } from "./spotify";
 
-console.log("app.ts");
-
 gsap.registerPlugin(ScrollTrigger);
 // Initialize smooth scrolling for all pages
 const lenis = new Lenis();
