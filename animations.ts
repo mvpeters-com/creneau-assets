@@ -18,17 +18,6 @@ const animations = {
     indexNames: ["hasselt", "eindhoven", "dubai"],
     data: [],
   },
-  // Hover animations for grid items
-  grid: {
-    urls: [
-      "https://cdn.prod.website-files.com/6786410629851043533e222c/67dc348799fe8b9d3cb895dc_hoverstate_lines.json",
-      "https://cdn.prod.website-files.com/6786410629851043533e222c/67dc348701a2e88962279d6c_hoverstate_squares.json",
-      "https://cdn.prod.website-files.com/6786410629851043533e222c/67dc3487215cdc512aa15ab3_hoverstate_triangles.json",
-      "https://cdn.prod.website-files.com/6786410629851043533e222c/6808f8dd481c1e9571bd7917_Hoverstate-Circles%20(1).json",
-    ],
-    indexNames: ["lines", "squares", "triangles", "circles"],
-    data: [],
-  },
   // Auto-play animations
   autoplay: {
     urls: [
@@ -67,19 +56,64 @@ const isMobile = () => {
   return mobileMediaQuery.matches;
 };
 
-// Shared animation functions
-const playForward = (anim: AnimationItem, element: Element) => {
-  const currentFrame = anim.currentFrame;
-  anim.setDirection(1);
-  anim.goToAndPlay(currentFrame, true);
-  element.classList.add("grid-hover-item-zoom");
+// Shared hover functions for image/video elements
+const showHoverElement = (element: Element) => {
+  // Find hover image or video
+  const hoverImage = element.querySelector(
+    ".grid_link_hover_image"
+  ) as HTMLImageElement;
+  const hoverVideo = element.querySelector(
+    ".grid_link_hover_video"
+  ) as HTMLVideoElement;
+
+  if (
+    hoverImage &&
+    hoverImage.src &&
+    hoverImage.src.trim() !== "" &&
+    !hoverImage.src.trim().endsWith("/")
+  ) {
+    hoverImage.style.opacity = "1";
+  }
+
+  if (
+    hoverVideo &&
+    hoverVideo.src &&
+    hoverVideo.src.trim() !== "" &&
+    !hoverVideo.src.trim().endsWith("/")
+  ) {
+    hoverVideo.style.opacity = "1";
+    hoverVideo.play().catch(console.error);
+  }
 };
 
-const playReverse = (anim: AnimationItem, element: Element) => {
-  const currentFrame = anim.currentFrame;
-  anim.setDirection(-1);
-  anim.goToAndPlay(currentFrame, true);
-  element.classList.remove("grid-hover-item-zoom");
+const hideHoverElement = (element: Element) => {
+  // Find hover image or video
+  const hoverImage = element.querySelector(
+    ".grid_link_hover_image"
+  ) as HTMLImageElement;
+  const hoverVideo = element.querySelector(
+    ".grid_link_hover_video"
+  ) as HTMLVideoElement;
+
+  if (
+    hoverImage &&
+    hoverImage.src &&
+    hoverImage.src.trim() !== "" &&
+    !hoverImage.src.trim().endsWith("/")
+  ) {
+    hoverImage.style.opacity = "0";
+  }
+
+  if (
+    hoverVideo &&
+    hoverVideo.src &&
+    hoverVideo.src.trim() !== "" &&
+    !hoverVideo.src.trim().endsWith("/")
+  ) {
+    hoverVideo.style.opacity = "0";
+    hoverVideo.pause();
+    hoverVideo.currentTime = 0;
+  }
 };
 
 // Store references to event listeners
@@ -91,37 +125,50 @@ const eventListeners = new WeakMap<
   }
 >();
 
-// Function to initialize animations for grid hover items
-export async function initializeGridAnimations() {
-  await fetchAnimationData(animations.grid);
-
-  if (animations.grid.data.length === 0) {
-    console.warn("Grid animation data not loaded yet");
-    return;
-  }
-
+// Function to initialize hover effects for grid items
+export function initializeGridAnimations() {
   // Loop through grid items
-  document.querySelectorAll(".grid-hover-item").forEach((item, index) => {
-    const lottieContainer = item.querySelector(".hover-item-lottie");
-    if (!lottieContainer) return;
+  document.querySelectorAll(".grid-hover-item").forEach((item) => {
+    const hoverImage = item.querySelector(
+      ".grid_link_hover_image"
+    ) as HTMLImageElement;
+    const hoverVideo = item.querySelector(
+      ".grid_link_hover_video"
+    ) as HTMLVideoElement;
 
-    const max4index = index % animations.grid.data.length;
+    // Only proceed if there's at least one hover element with a valid (non-empty) src
+    const hasHoverImage =
+      hoverImage &&
+      hoverImage.src &&
+      hoverImage.src.trim() !== "" &&
+      !hoverImage.src.trim().endsWith("/");
+    const hasHoverVideo =
+      hoverVideo &&
+      hoverVideo.src &&
+      hoverVideo.src.trim() !== "" &&
+      !hoverVideo.src.trim().endsWith("/");
 
-    // Create animation using the preloaded JSON data
-    const anim = lottie.loadAnimation({
-      container: lottieContainer,
-      animationData: animations.grid.data[max4index],
-      renderer: "svg",
-      loop: false,
-      autoplay: false,
-    });
+    if (!hasHoverImage && !hasHoverVideo) return;
+
+    // Initialize opacity to 0
+    if (hoverImage) {
+      hoverImage.style.opacity = "0";
+      hoverImage.style.transition = "opacity 0.15s ease-out";
+    }
+
+    if (hoverVideo) {
+      hoverVideo.style.opacity = "0";
+      hoverVideo.style.transition = "opacity 0.15s ease-out";
+      hoverVideo.muted = true; // Ensure videos are muted for autoplay
+      hoverVideo.loop = true;
+    }
 
     // For desktop devices: use mouse events
     if (!isMobile()) {
-      setupDesktopInteraction(item, anim);
+      setupDesktopHoverInteraction(item);
     } else {
       // For mobile devices: use Intersection Observer
-      setupMobileInteraction(item, anim);
+      setupMobileHoverInteraction(item);
     }
 
     // Re-initialize interactions on window resize
@@ -131,9 +178,9 @@ export async function initializeGridAnimations() {
 
       // Setup appropriate interaction based on current screen size
       if (!isMobile()) {
-        setupDesktopInteraction(item, anim);
+        setupDesktopHoverInteraction(item);
       } else {
-        setupMobileInteraction(item, anim);
+        setupMobileHoverInteraction(item);
       }
     });
   });
@@ -217,7 +264,77 @@ function cleanupInteraction(item: Element) {
 }
 
 // Setup desktop interaction (mouseenter/mouseleave)
-function setupDesktopInteraction(item: Element, anim: AnimationItem) {
+function setupDesktopHoverInteraction(item: Element) {
+  // Create named handler functions
+  const mouseEnterHandler = (e: Event) => {
+    showHoverElement(item);
+  };
+
+  const mouseLeaveHandler = (e: Event) => {
+    hideHoverElement(item);
+  };
+
+  // Store references to the handlers
+  eventListeners.set(item, {
+    mouseEnter: mouseEnterHandler,
+    mouseLeave: mouseLeaveHandler,
+  });
+
+  // Add listeners using the stored references
+  item.addEventListener("mouseenter", mouseEnterHandler);
+  item.addEventListener("mouseleave", mouseLeaveHandler);
+}
+
+// Setup mobile interaction (Intersection Observer)
+function setupMobileHoverInteraction(item: Element) {
+  // Clean up any existing observer
+  if ((item as any)._intersectionObserver) {
+    (item as any)._intersectionObserver.disconnect();
+  }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      const entry = entries[0];
+      const ratio = entry.intersectionRatio;
+
+      // Element is entering viewport (passed 1/3 of the screen)
+      if (entry.isIntersecting && ratio === 1) {
+        showHoverElement(item);
+      }
+
+      // Element is exiting viewport (passed 2/3 of the screen)
+      if (ratio < 1) {
+        hideHoverElement(item);
+      }
+    },
+    {
+      rootMargin: "-15% 0px -15% 0px",
+      // Use thresholds to track multiple intersection points
+      threshold: [0.5, 1],
+    }
+  );
+
+  observer.observe(item);
+
+  (item as any)._intersectionObserver = observer;
+}
+
+const playForward = (anim: AnimationItem, element: Element) => {
+  const currentFrame = anim.currentFrame;
+  anim.setDirection(1);
+  anim.goToAndPlay(currentFrame, true);
+  element.classList.add("grid-hover-item-zoom");
+};
+
+const playReverse = (anim: AnimationItem, element: Element) => {
+  const currentFrame = anim.currentFrame;
+  anim.setDirection(-1);
+  anim.goToAndPlay(currentFrame, true);
+  element.classList.remove("grid-hover-item-zoom");
+};
+
+// Setup desktop interaction for contact animations (mouseenter/mouseleave)
+function setupDesktopContactInteraction(item: Element, anim: AnimationItem) {
   // Create named handler functions
   const mouseEnterHandler = (e: Event) => {
     playForward(anim, item);
@@ -238,8 +355,8 @@ function setupDesktopInteraction(item: Element, anim: AnimationItem) {
   item.addEventListener("mouseleave", mouseLeaveHandler);
 }
 
-// Setup mobile interaction (Intersection Observer)
-function setupMobileInteraction(item: Element, anim: AnimationItem) {
+// Setup mobile interaction for contact animations (Intersection Observer)
+function setupMobileContactInteraction(item: Element, anim: AnimationItem) {
   // Clean up any existing observer
   if ((item as any)._intersectionObserver) {
     (item as any)._intersectionObserver.disconnect();
@@ -320,10 +437,10 @@ export async function initializeContactAnimations() {
 
     // For desktop devices: use mouse events
     if (!isMobile()) {
-      setupDesktopInteraction(item, anim);
+      setupDesktopContactInteraction(item, anim);
     } else {
       // For mobile devices: use Intersection Observer
-      setupMobileInteraction(item, anim);
+      setupMobileContactInteraction(item, anim);
     }
 
     // Re-initialize interactions on window resize
@@ -333,9 +450,9 @@ export async function initializeContactAnimations() {
 
       // Setup appropriate interaction based on current screen size
       if (!isMobile()) {
-        setupDesktopInteraction(item, anim);
+        setupDesktopContactInteraction(item, anim);
       } else {
-        setupMobileInteraction(item, anim);
+        setupMobileContactInteraction(item, anim);
       }
     });
   });
@@ -359,12 +476,12 @@ export function initializeCtaAnimations(gsap: GSAP) {
 
       // Coming from left/right edge
       if (relX < 0.1) startX = "-100%";
-      else if (relX > 0.9) startX = "100%";
+      else if (relX > 0.5) startX = "100%";
       else startX = "0%";
 
       // Coming from top/bottom edge
       if (relY < 0.1) startY = "-100%";
-      else if (relY > 0.9) startY = "100%";
+      else if (relY > 0.5) startY = "100%";
       else startY = "0%";
 
       const backgroundFill = block.querySelector(".cta_background-fill");

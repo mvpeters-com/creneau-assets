@@ -1,6 +1,6 @@
 import Swiper from "swiper";
 import BeerSlider from "beerslider";
-import lottie, { AnimationItem } from "lottie-web";
+import lottie from "lottie-web";
 
 // GSAP animations
 const setupGSAPAnimations = (gsap: GSAP) => {

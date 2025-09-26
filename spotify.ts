@@ -1,8 +1,6 @@
-import { SpotifyIFrameAPI, SpotifyEmbedController } from "./spotify-iframe-api";
+import { SpotifyEmbedController } from "./spotify-iframe-api";
 
 export function initSpotify() {
-  console.log("initSpotify");
-  // Dynamically load the Spotify IFrame API script
   const scriptId = "spotify-iframe-api";
   if (!document.getElementById(scriptId)) {
     const script = document.createElement("script");
@@ -15,8 +13,6 @@ export function initSpotify() {
   // Set up the Spotify IFrame API ready handler
   window.onSpotifyIframeApiReady = (IFrameAPI) => {
     const elements = document.querySelectorAll(".spotify-embed-block");
-
-    console.log(elements);
 
     elements.forEach((element) => {
       const url = element?.getAttribute("data-spotify-uri");
@@ -37,9 +33,8 @@ export function initSpotify() {
       const options = {
         uri: `spotify:episode:${uri}`,
       };
-      const callback = (EmbedController: SpotifyEmbedController) => {
-        // Optionally handle the controller here
-      };
+
+      const callback = (EmbedController: SpotifyEmbedController) => {};
 
       IFrameAPI.createController(element as HTMLElement, options, callback);
     });

@@ -1,4 +1,3 @@
-//todo: refactor to work on window resize
 const initNav = () => {
   const menuToggle = document.querySelector(".nav_menu-toggle") as HTMLElement;
   const menuContainer = document.querySelector(

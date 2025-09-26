@@ -6,7 +6,6 @@ import {
 } from "./util";
 
 function initBlogFilters() {
-  // Constants
   const SELECTORS = {
     filterLink: "world-type-filter-link",
     filterLinkActive: "world-type-filter-link-active",
@@ -14,14 +13,12 @@ function initBlogFilters() {
     disabled: "filter-disabled",
   } as const;
 
-  // DOM element selections
   let filterLinks: HTMLElement[] = [];
   let blogItems: HTMLElement[] = [];
 
   // Function to initialize blog items with transition names
   function initializeBlogItems() {
     blogItems = Array.from(document.querySelectorAll(`.${SELECTORS.blogItem}`));
-    console.log(blogItems);
     // Add view transition names
     addViewTransitionNames(blogItems, "blog");
   }

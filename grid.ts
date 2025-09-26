@@ -1,10 +1,10 @@
-import { initializeGridAnimations as initGridLottieAnimations } from "./animations";
+import { initializeGridAnimations as initGridHoverAnimations } from "./animations";
 import { gsap } from "gsap";
 
-// Export combined function that runs both the lottie animations and GSAP timeline animations
-export async function initializeGridAnimations() {
-  // Initialize lottie animations from animations.ts
-  await initGridLottieAnimations();
+// Export combined function that runs both the hover animations and GSAP timeline animations
+export function initializeGridAnimations() {
+  // Initialize hover animations from animations.ts
+  initGridHoverAnimations();
 
   // Initialize GSAP timeline animations
   initGridTimelineAnimations();

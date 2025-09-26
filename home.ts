@@ -1,11 +1,162 @@
 import type Lenis from "lenis";
 import lottie from "lottie-web";
+import ScrollTrigger from "gsap/ScrollTrigger";
+import { TextRevealCurtain } from "./text-reveal";
 
 const lottieUrl =
   "https://cdn.prod.website-files.com/6786410629851043533e222c/67dc16c4926a696f3b9a0941_hover-card-circles.json";
 
+// Function to create intro animation
+const createIntroAnimation = (
+  gsap: GSAP,
+  heroLottie: any,
+  nav: HTMLElement | null
+) => {
+  const redOverlay = document.querySelector<HTMLElement>(".red-overlay");
+  const redOverlayText =
+    document.querySelector<HTMLElement>(".red-overlay-text");
+
+  // Initialize text reveal for container-hero
+  let heroTextReveal: TextRevealCurtain | null = null;
+  const heroContainer = document.querySelector(".container-hero");
+  if (heroContainer) {
+    heroTextReveal = new TextRevealCurtain(".container-hero", {
+      overlayColor: "#ffffff", // Match your design
+    });
+  }
+
+  // Check if red overlay has hidden class - if so, skip intro animation
+  if (!redOverlay || redOverlay.classList.contains("hidden")) {
+    // Just animate nav and play lottie, but still do text reveal
+    const quickIntroTl = gsap.timeline({
+      onComplete: () => {
+        gsap.delayedCall(0.1, () => {
+          ScrollTrigger.refresh();
+        });
+      },
+    });
+
+    // Still reveal hero text even when skipping intro
+    if (heroTextReveal) {
+      quickIntroTl.add(
+        heroTextReveal.reveal({
+          duration: 1.2,
+          ease: "power2.out",
+        }),
+        0
+      );
+    }
+
+    return quickIntroTl;
+  }
+
+  // Disable scrolling initially
+  document.body.style.overflowY = "hidden";
+
+  // Create main intro timeline
+  const introTl = gsap.timeline({
+    onComplete: () => {
+      // Enable scrolling after intro is complete
+      document.body.style.overflowY = "auto";
+      // Refresh ScrollTrigger to activate scroll animations
+      gsap.delayedCall(0.1, () => {
+        ScrollTrigger.refresh();
+      });
+    },
+  });
+
+  introTl.set(nav, { y: "-100%" });
+
+  // Step 1: Fade in and scale down red-overlay-text
+  if (redOverlayText) {
+    introTl
+      .fromTo(
+        redOverlayText,
+        {
+          opacity: 0,
+          scale: 1,
+        },
+        {
+          opacity: 1,
+          scale: 0.8,
+          duration: 1,
+          ease: "power2.out",
+        }
+      )
+      .to(
+        redOverlayText,
+        {
+          opacity: 0,
+          duration: 0.2,
+          ease: "power2.out",
+        },
+        "+=0.2"
+      );
+  }
+
+  // Animate overlays
+  introTl
+    .fromTo(
+      redOverlay,
+      {
+        top: 0,
+      },
+      {
+        top: "calc(100% - 300px)",
+        ease: "power2.inOut",
+      },
+      "+=0.3"
+    )
+    .fromTo(
+      redOverlay,
+      {
+        bottom: 0,
+      },
+      {
+        bottom: "calc(100% - 300px)",
+        ease: "power2.inOut",
+      },
+      "+=0.3"
+    );
+
+  // Add text reveal animation during the red overlay bottom animation
+  if (heroTextReveal) {
+    introTl.add(
+      heroTextReveal.reveal({
+        duration: 1.2,
+        ease: "power2.out",
+      }),
+      "-=1" // Start during the bottom overlay animation
+    );
+  }
+
+  introTl.fromTo(
+    nav,
+    {
+      y: "-100%",
+    },
+    {
+      y: "0%",
+      duration: 0.8,
+      ease: "power2.out",
+    },
+    "-=0.5"
+  );
+
+  // Play lottie animation
+  introTl.call(
+    () => {
+      heroLottie.play();
+    },
+    [],
+    "-=0.5"
+  );
+
+  return introTl;
+};
+
 // Function to initialize hero section animations
-const initHeroAnimations = (lenis: Lenis, gsap: GSAP) => {
+const initHeroAnimations = (gsap: GSAP) => {
   const heroLottie = lottie.loadAnimation({
     container: document.querySelector(".hero-lottie") as HTMLElement,
     renderer: "svg",
@@ -23,130 +174,52 @@ const initHeroAnimations = (lenis: Lenis, gsap: GSAP) => {
     nav.classList.add("nav-transparent");
   }
 
-  // Keep track of scroll direction and animation state
-  let lastScrollProgress = 0;
-  let isAnimatingForward = true;
+  // Add slow zoom effect to hero image (independent of intro timeline)
+  const heroImage = document.querySelector(".home_hero_image");
+  if (heroImage) {
+    gsap.fromTo(
+      heroImage,
+      {
+        scale: 1,
+      },
+      {
+        scale: 1.2,
+        duration: 20,
+        ease: "power2.inOut",
+      }
+    );
+  }
 
+  // Create and run intro animation
+  createIntroAnimation(gsap, heroLottie, nav);
+
+  // Text reveal effect is now integrated into the intro animation timeline
+  // The .container-hero element will have a curtain-lifting reveal effect
+  // that happens during the red overlay bottom animation
+
+  // Create scroll timeline that starts after intro animation
   const tl = gsap.timeline({
     scrollTrigger: {
       trigger: ".hero_home_section",
       start: "top top",
-      end: "+=150%", // how many % of viewport height to scroll through
+      end: "+=100%",
       scrub: 0.5,
       pin: true,
-      onUpdate: (self) => {
-        // Check if we've crossed the animation trigger point (50% of the timeline)
-        const currentProgress = self.progress;
-        const triggerPoint = 0.5;
-
-        // Determine scroll direction
-        const isScrollingDown = currentProgress > lastScrollProgress;
-
-        // If we crossed the 0.5 mark in either direction
-        if (
-          (lastScrollProgress < triggerPoint &&
-            currentProgress >= triggerPoint) ||
-          (lastScrollProgress >= triggerPoint && currentProgress < triggerPoint)
-        ) {
-          // If direction changed, set animation direction
-          if (isScrollingDown !== isAnimatingForward) {
-            isAnimatingForward = isScrollingDown;
-            heroLottie.setDirection(isAnimatingForward ? 1 : -1);
-          }
-
-          // Play from current position
-          heroLottie.play();
-        }
-
-        lastScrollProgress = currentProgress;
-      },
+      refreshPriority: -1, // Lower priority so it refreshes after intro
     },
   });
 
-  tl.fromTo(
-    ".home_hero_image",
-    { scale: 1.2 },
-    { scale: 1, ease: "none" },
-    0 // start at the very beginning
-  )
-    .fromTo(
-      ".hero-white-overlay",
-      { height: 0, autoAlpha: 0 },
-      { height: "calc(100vh - 100px)", autoAlpha: 1, ease: "none" },
-      0 // ← same exact position
-    )
+  tl.to(".hero-white-overlay", { height: 0, autoAlpha: 1, ease: "none" }, 0)
     .fromTo(
       ".project-label",
-      { xPercent: 100, autoAlpha: 0 },
-      { xPercent: 0, autoAlpha: 1, ease: "none", duration: 0.4 },
-      0
-    )
-    .fromTo(
-      ".home-nav",
-      { y: "-100%" },
-      { y: "0%", ease: "none", duration: 0.1 },
-      0.45
+      { xPercent: 150, autoAlpha: 1 },
+      { xPercent: 0, autoAlpha: 1, ease: "none", duration: 0.2 },
+      0.2
     )
     .to(
-      ".home-nav .int-logo",
-      {
-        x: "40px",
-        ease: "power2.out",
-        duration: 0.1,
-      },
-      0.6
-    )
-    // Remove the nav-transparent class at 90% progress
-    .call(
-      () => {
-        if (nav && nav.classList.contains("nav-transparent")) {
-          nav.classList.remove("nav-transparent");
-        } else if (nav) {
-          nav.classList.add("nav-transparent");
-        }
-      },
-      [],
-      0.9
-    )
-    .to(".hero-white-overlay", { height: 0, autoAlpha: 1, ease: "none" }, 0.7)
-    .fromTo(
       ".project-label",
-      { xPercent: 0, autoAlpha: 1 },
-      { xPercent: 100, autoAlpha: 0, ease: "none", duration: 0.4 },
+      { xPercent: 150, autoAlpha: 0, ease: "none", duration: 0.2 },
       0.7
-    )
-    .fromTo(
-      ".home-nav",
-      { y: "0%" },
-      { y: "-100%", ease: "none", duration: 0.1 },
-      0.7
-    );
-
-  // Create a timeline for the What We Do section with nav reappearance
-  const whatWeDotl = gsap.timeline({
-    scrollTrigger: {
-      trigger: ".padding-what-we-do",
-      start: "top 90%",
-      end: "top 30%",
-      scrub: true,
-    },
-  });
-
-  whatWeDotl
-    .fromTo(
-      ".padding-what-we-do",
-      { autoAlpha: 0 },
-      { autoAlpha: 1, ease: "none", duration: 0.5 }
-    )
-    .fromTo(
-      ".home-nav",
-      { y: "-100%" },
-      {
-        y: "0%",
-        ease: "none",
-        duration: 0.2,
-      },
-      1 // Start halfway through the fade-in
     );
 };
 
@@ -181,6 +254,7 @@ const animateWeDoElements = (
 // Function to handle we-do items for desktop
 const initWeDoItemsDesktop = (gsap: GSAP) => {
   const weDoItems = document.querySelectorAll<HTMLElement>(".we-do-item");
+
   const weDoTextContainers = document.querySelectorAll<HTMLElement>(
     ".we-do-text-container"
   );
@@ -345,14 +419,9 @@ const initWeDoItemsMobile = (gsap: GSAP) => {
   const weDoSection = document.querySelector<HTMLElement>(
     ".what-we-do-container"
   );
-  const weDoTextContainers = document.querySelectorAll<HTMLElement>(
-    ".we-do-text-container"
-  );
 
   // Store scroll triggers for later cleanup
   const scrollTriggers: any[] = [];
-
-  console.log(weDoSection);
 
   if (!weDoSection) return () => {};
 
@@ -361,7 +430,7 @@ const initWeDoItemsMobile = (gsap: GSAP) => {
     scrollTrigger: {
       trigger: weDoSection,
       start: "top 20%", // Changed from 20% to 10% to make it freeze closer to the top
-      end: "+=100%", // Pin for 300% of viewport height (adjust as needed)
+      end: "+=50%", // Pin for 300% of viewport height (adjust as needed)
       pin: true,
       scrub: 1, // Smooth scrubbing
       // markers: true, // Uncomment for debugging
@@ -430,7 +499,7 @@ const initWeDoItemsMobile = (gsap: GSAP) => {
 // Main initialization function
 const initHome = (lenis: Lenis, gsap: GSAP) => {
   // Initialize hero animations
-  initHeroAnimations(lenis, gsap);
+  initHeroAnimations(gsap);
 
   // Use GSAP matchMedia instead of manual screen size handling
   let mm = gsap.matchMedia();
@@ -440,16 +509,6 @@ const initHome = (lenis: Lenis, gsap: GSAP) => {
     console.log("desktop");
     // Initialize desktop view and get the cleanup function
     const cleanup = initWeDoItemsDesktop(gsap);
-
-    // Return cleanup function for when this context is exited
-    return cleanup;
-  });
-
-  // Mobile (< 768px) context
-  mm.add("(max-width: 767px)", () => {
-    console.log("mobile");
-    // Initialize mobile view and get the cleanup function
-    const cleanup = initWeDoItemsMobile(gsap);
 
     // Return cleanup function for when this context is exited
     return cleanup;

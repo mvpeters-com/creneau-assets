@@ -1,16 +1,17 @@
 import "lenis/dist/lenis.css";
 import Lenis from "lenis";
+import { gsap } from "gsap";
+import ScrollTrigger from "gsap/ScrollTrigger";
 
 import "./main.css";
 
 // Import all module initializers
 import { initBlogFilters } from "./blog-filters";
 import { initWorkFilters } from "./work-filters";
+
 import { initNav } from "./nav";
 import { initLinks } from "./links";
 import { initHome } from "./home";
-import { gsap } from "gsap";
-import ScrollTrigger from "gsap/ScrollTrigger";
 
 import {
   initializeAutoplayAnimations,
@@ -29,8 +30,6 @@ const lenis = new Lenis();
 // Synchronize Lenis scrolling with GSAP's ScrollTrigger plugin
 lenis.on("scroll", ScrollTrigger.update);
 
-// Add Lenis's requestAnimationFrame (raf) method to GSAP's ticker
-// This ensures Lenis's smooth scroll animation updates on each GSAP tick
 gsap.ticker.add((time) => {
   lenis.raf(time * 1000); // Convert time from seconds to milliseconds
 });
@@ -41,6 +40,7 @@ gsap.ticker.lagSmoothing(0);
 // Map paths to initialization functions
 const pathModuleMap: Record<string, Array<() => void>> = {
   // Default modules run on all pages
+
   default: [initNav, initLinks, initializeCtaAnimations.bind(null, gsap)],
   "/": [
     initHome.bind(null, lenis, gsap),
