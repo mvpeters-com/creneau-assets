@@ -1,5 +1,5 @@
 import type Lenis from "lenis";
-import lottie from "lottie-web";
+import lottie, { type AnimationItem } from "lottie-web";
 import ScrollTrigger from "gsap/ScrollTrigger";
 import { TextRevealCurtain } from "./text-reveal";
 
@@ -9,7 +9,7 @@ const lottieUrl =
 // Function to create intro animation
 const createIntroAnimation = (
   gsap: GSAP,
-  heroLottie: any,
+  heroLottie: AnimationItem,
   nav: HTMLElement | null
 ) => {
   const redOverlay = document.querySelector<HTMLElement>(".red-overlay");
@@ -95,6 +95,9 @@ const createIntroAnimation = (
   }
 
   // Animate overlays
+  // Check screen width to determine overlay size
+  const overlaySize = window.innerWidth < 767 ? "150px" : "300px";
+
   introTl
     .fromTo(
       redOverlay,
@@ -102,7 +105,7 @@ const createIntroAnimation = (
         top: 0,
       },
       {
-        top: "calc(100% - 300px)",
+        top: `calc(100% - ${overlaySize})`,
         ease: "power2.inOut",
       },
       "+=0.3"
@@ -113,7 +116,7 @@ const createIntroAnimation = (
         bottom: 0,
       },
       {
-        bottom: "calc(100% - 300px)",
+        bottom: `calc(100% - ${overlaySize})`,
         ease: "power2.inOut",
       },
       "+=0.3"
@@ -143,10 +146,18 @@ const createIntroAnimation = (
     "-=0.5"
   );
 
-  // Play lottie animation
+  // Play lottie animation - but not completely on mobile
   introTl.call(
     () => {
-      heroLottie.play();
+      const isMobile = window.innerWidth < 768;
+
+      if (isMobile) {
+        // On mobile, play animation until 3/4 of the way through
+        const endFrame = Math.floor(heroLottie.totalFrames * 0.75);
+        heroLottie.playSegments([0, endFrame], true);
+      } else {
+        heroLottie.play();
+      }
     },
     [],
     "-=0.5"

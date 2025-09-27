@@ -297,13 +297,12 @@ function setupMobileHoverInteraction(item: Element) {
       const entry = entries[0];
       const ratio = entry.intersectionRatio;
 
-      // Element is entering viewport (passed 1/3 of the screen)
-      if (entry.isIntersecting && ratio === 1) {
-        showHoverElement(item);
-      }
+      console.log(ratio);
 
-      // Element is exiting viewport (passed 2/3 of the screen)
-      if (ratio < 1) {
+      // Element is entering viewport (passed 1/3 of the screen)
+      if (entry.isIntersecting && ratio >= 0.8) {
+        showHoverElement(item);
+      } else {
         hideHoverElement(item);
       }
     },
